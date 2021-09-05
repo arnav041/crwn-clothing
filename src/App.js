@@ -1,43 +1,28 @@
 import './App.css';
-import React from 'react'
-import { Redirect } from 'react-router-dom'
+import React from 'react';
+import { Redirect } from 'react-router-dom';
 import HomePage from './component/Pages/Homepage/Homepage.component';
 import ShopPage from './component/Pages/Shop/Shop.component';
-import { Switch, Route } from 'react-router-dom'
+import { Switch, Route } from 'react-router-dom';
+import { createStructuredSelector } from 'reselect';
 import Header from './component/Header/Header.component';
 import SignInSignUp from './component/Pages/Sign-in-Sign-up/Sign-in-Sign-up.component';
-import { auth, createUserProfileDocument } from './firebase/firebase.utils'
-import { connect } from 'react-redux';
-import { setCurrentUser } from './redux/user/user.actions'
 import CheckoutPage from './component/Pages/Checkout/Checkout.component.jsx';
-import { createStructuredSelector } from 'reselect';
+import { checkUserSession } from './redux/user/user.actions';
+import { connect } from 'react-redux';
+import { selectCurrentUser } from './redux/user/user.selectors'
 
-import { selectCurrentUser } from './redux/user/user.selectors';
 
 class App extends React.Component {
-  
-  unsubscribeFromAuth = null;
+  unsubscirbeFromAuth = null;
 
   componentDidMount() {
-    const { setCurrentUser } = this.props;
-
-    this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
-      if (userAuth) {
-
-        const userRef = await createUserProfileDocument(userAuth);
-        userRef.onSnapshot(snapShot => {
-          setCurrentUser({
-            id: snapShot.id,
-            ...snapShot.data()
-          })
-        });
-      }
-      setCurrentUser(userAuth);
-    })
+    const { checkUserSession } = this.props;
+    checkUserSession();
   }
 
   componentWillUnmount() {
-    this.unsubscribeFromAuth();
+    this.unsubscirbeFromAuth();
   }
 
   render() {
@@ -57,11 +42,10 @@ class App extends React.Component {
 
 const mapStateToProps = createStructuredSelector({
   currentUser: selectCurrentUser
-});
-
-const mapDispatchToProps = dispatch => ({
-  setCurrentUser: user => dispatch(setCurrentUser(user))
 })
 
+const mapDispatchToProps = dispatch => ({
+  checkUserSession: () => dispatch(checkUserSession())
+})
 
 export default connect(mapStateToProps, mapDispatchToProps)(App);
